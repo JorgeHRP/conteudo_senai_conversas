@@ -1,0 +1,35 @@
+# Credenciais — nunca subir
+.env
+
+# Documentação interna — não subir
+README.md
+
+# Claude Code
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Ambientes virtuais
+venv/
+.venv/
+env/
+.env.local
+
+# Flask/editor
+instance/
+.webassets-cache
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+

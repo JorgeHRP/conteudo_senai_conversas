@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Atendimentos{% endblock %}
+
+{% block content %}
+<div class="page">
+
+  <div class="page-header">
+    <h1 class="page-title">Atendimentos</h1>
+    <p class="page-subtitle">Clique em um lead para visualizar a conversa com o agente IA</p>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <input
+      id="search-input"
+      class="search-input"
+      type="text"
+      placeholder="Buscar por nome ou telefone..."
+      oninput="filterTable()"
+    />
+
+    <select id="status-filter" class="filter-select" onchange="filterTable()">
+      <option value="">Todos os status</option>
+      <option value="1">Lead Novo</option>
+      <option value="2">Interesse</option>
+      <option value="3">Sem Interesse</option>
+      <option value="none">Pendente</option>
+    </select>
+
+    <select id="follow-filter" class="filter-select" onchange="filterTable()">
+      <option value="">Todos follow-ups</option>
+      <option value="Sim">Com Follow-up</option>
+      <option value="Nao">Sem Follow-up</option>
+    </select>
+
+    <span id="count-label" class="toolbar-count"></span>
+  </div>
+
+  <!-- Table -->
+  <div class="glass-card table-card">
+    <div class="table-inner">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Telefone</th>
+            <th>Status</th>
+            <th>Follow-up</th>
+            <th>Cadastro</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          {% for u in users %}
+          <tr
+            data-status="{{ u.status_key }}"
+            data-follow="{{ u.follow_up_label }}"
+            onclick="openConversation('{{ u.telefone | e }}', '{{ u.nomewpp | e }}')"
+          >
+            <td class="td-name">{{ u.nomewpp or '—' }}</td>
+            <td class="td-phone">{{ u.telefone or '—' }}</td>
+            <td>
+              <span class="badge" style="background:{{ u.status_bg }};color:{{ u.status_color }}">
+                {{ u.status_label }}
+              </span>
+            </td>
+            <td>
+              {% if u.follow_up %}
+                <span class="badge badge-follow-sim">Sim</span>
+              {% else %}
+                <span class="badge badge-follow-nao">Nao</span>
+              {% endif %}
+            </td>
+            <td class="td-date">{{ u.created_formatted }}</td>
+            <td style="color:rgba(255,255,255,0.25);font-size:18px;text-align:right;padding-right:14px">&#8250;</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6">
+              <div class="empty-state">Nenhum lead encontrado.</div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Conversation Modal -->
+<div id="modal-overlay" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-info">
+        <div id="modal-name" class="modal-name"></div>
+        <div id="modal-phone" class="modal-phone"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()" aria-label="Fechar">&times;</button>
+    </div>
+    <div id="chat-wrap" class="chat-wrap"></div>
+  </div>
+</div>
+{% endblock %}

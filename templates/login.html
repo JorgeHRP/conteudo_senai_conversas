@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SENAI CRM — Login</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+<div class="login-page">
+  <div class="glass-card login-card">
+
+    <!-- Banner -->
+    <div class="login-banner">
+      <img
+        src="{{ url_for('static', filename='img/capa.png') }}"
+        alt="SENAI Cursos Profissionalizantes"
+        class="login-banner-img"
+      />
+    </div>
+
+    <!-- Logo + titulo -->
+    <div class="login-logo">
+      <img
+        src="{{ url_for('static', filename='img/perfil.png') }}"
+        alt="SENAI"
+        class="login-perfil-img"
+      />
+      <div class="login-title">SENAI CRM</div>
+      <div class="login-subtitle">Painel de Atendimentos — Agente IA</div>
+    </div>
+
+    {% if error %}
+    <div class="error-msg">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('login') }}" autocomplete="on">
+      <div class="form-group">
+        <label class="form-label" for="username">Usuário</label>
+        <input
+          class="form-input"
+          type="text"
+          id="username"
+          name="username"
+          placeholder="admin"
+          autocomplete="username"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="password">Senha</label>
+        <input
+          class="form-input"
+          type="password"
+          id="password"
+          name="password"
+          placeholder="••••••••"
+          autocomplete="current-password"
+          required
+        />
+      </div>
+      <button class="btn-primary" type="submit">Entrar</button>
+    </form>
+
+  </div>
+</div>
+</body>
+</html>

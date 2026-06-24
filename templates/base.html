@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SENAI CRM — {% block title %}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app-wrap">
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <a href="{{ url_for('dashboard') }}" class="nav-brand">
+      <img
+        src="{{ url_for('static', filename='img/perfil.png') }}"
+        alt="SENAI"
+        class="nav-logo-img"
+      />
+      SENAI CRM
+    </a>
+
+    <div class="nav-tabs">
+      <a href="{{ url_for('dashboard') }}"
+         class="nav-tab {% if active_tab == 'dashboard' %}active{% endif %}">
+        Dashboard
+      </a>
+      <a href="{{ url_for('atendimentos') }}"
+         class="nav-tab {% if active_tab == 'atendimentos' %}active{% endif %}">
+        Atendimentos
+      </a>
+    </div>
+
+    <a href="{{ url_for('logout') }}" class="nav-logout">Sair</a>
+  </nav>
+
+  <!-- Content -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
