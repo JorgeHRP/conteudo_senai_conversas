@@ -23,6 +23,43 @@ STATUS_MAP = {
 }
 PENDING_STATUS = {"label": "Pendente", "color": "#8e8e93", "bg": "rgba(142,142,147,0.18)"}
 
+# Dados mocados apenas para demonstracao da tela de criacao de agentes
+MOCK_AGENTS = [
+    {
+        "nome": "SDR SENAI - Captacao",
+        "modelo": "GPT-4o mini",
+        "tom": "Consultivo",
+        "temperatura": 0.7,
+        "status": "ativo",
+        "conversas": 482,
+        "taxa_resposta": 94,
+        "base_conhecimento": "cursos_senai_2026.csv",
+        "criado_em": "18/02/2026",
+    },
+    {
+        "nome": "Suporte Matriculas",
+        "modelo": "Claude 3.5 Sonnet",
+        "tom": "Formal",
+        "temperatura": 0.4,
+        "status": "ativo",
+        "conversas": 216,
+        "taxa_resposta": 98,
+        "base_conhecimento": "faq_matriculas.csv",
+        "criado_em": "02/04/2026",
+    },
+    {
+        "nome": "Follow-up Pos-Venda",
+        "modelo": "GPT-4o",
+        "tom": "Casual e Amigavel",
+        "temperatura": 0.9,
+        "status": "pausado",
+        "conversas": 63,
+        "taxa_resposta": 81,
+        "base_conhecimento": "roteiro_followup.csv",
+        "criado_em": "27/05/2026",
+    },
+]
+
 
 def login_required(f):
     @wraps(f)
@@ -147,6 +184,12 @@ def atendimentos():
             u["created_formatted"] = "—"
 
     return render_template("atendimentos.html", users=users, active_tab="atendimentos")
+
+
+@app.route("/agentes")
+@login_required
+def agentes():
+    return render_template("agentes.html", active_tab="agentes", agents=MOCK_AGENTS)
 
 
 @app.route("/api/conversation/<telefone>")

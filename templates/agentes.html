@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}Criador de Agentes{% endblock %}
+
+{% block content %}
+<div class="page">
+
+  <div class="page-header">
+    <h1 class="page-title">Criador de Agentes</h1>
+    <p class="page-subtitle">Configure agentes de IA para atendimento via WhatsApp — dados de demonstracao</p>
+  </div>
+
+  <!-- Agentes existentes -->
+  <div class="agents-grid">
+    {% for a in agents %}
+    <div class="glass-card agent-card">
+      <div class="agent-card-top">
+        <div class="agent-avatar">{{ a.nome[0] }}</div>
+        <div class="agent-card-title">
+          <div class="agent-name">{{ a.nome }}</div>
+          <div class="agent-channel">WhatsApp Business</div>
+        </div>
+        {% if a.status == 'ativo' %}
+        <span class="badge badge-follow-sim">Ativo</span>
+        {% else %}
+        <span class="badge badge-follow-nao">Pausado</span>
+        {% endif %}
+      </div>
+
+      <div class="agent-meta">
+        <div class="agent-meta-item">
+          <span class="agent-meta-label">Modelo</span>
+          <span class="agent-meta-value">{{ a.modelo }}</span>
+        </div>
+        <div class="agent-meta-item">
+          <span class="agent-meta-label">Tom de voz</span>
+          <span class="agent-meta-value">{{ a.tom }}</span>
+        </div>
+        <div class="agent-meta-item">
+          <span class="agent-meta-label">Temperatura</span>
+          <span class="agent-meta-value">{{ a.temperatura }}</span>
+        </div>
+        <div class="agent-meta-item">
+          <span class="agent-meta-label">Base de conhecimento</span>
+          <span class="agent-meta-value agent-file">{{ a.base_conhecimento }}</span>
+        </div>
+      </div>
+
+      <div class="agent-stats">
+        <div><strong>{{ a.conversas }}</strong> conversas</div>
+        <div><strong>{{ a.taxa_resposta }}%</strong> taxa de resposta</div>
+        <div class="agent-date">desde {{ a.criado_em }}</div>
+      </div>
+
+      <div class="agent-actions">
+        <button type="button" class="btn-ghost" onclick="mockAction('Edicao do agente \'{{ a.nome }}\' aberta (simulacao).')">Editar</button>
+        <button type="button" class="btn-ghost" onclick="mockAction('Agente \'{{ a.nome }}\' duplicado (simulacao).')">Duplicar</button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Formulario de criacao -->
+  <div class="glass-card create-card">
+    <div class="create-header">
+      <h2 class="create-title">Novo Agente de Conversa</h2>
+      <p class="create-subtitle">Preencha os campos abaixo para configurar um novo agente de atendimento no WhatsApp</p>
+    </div>
+
+    <form id="agent-form" onsubmit="return handleCreateAgent(event)">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nome do Agente</label>
+          <input type="text" class="form-input" placeholder="Ex: SDR SENAI - Captacao" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Canal</label>
+          <div class="channel-pill">
+            <span class="channel-dot"></span> WhatsApp Business
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Modelo de IA</label>
+          <select class="form-input select-input">
+            <option>GPT-4o mini</option>
+            <option>GPT-4o</option>
+            <option>Claude 3.5 Sonnet</option>
+            <option>Claude 3 Haiku</option>
+            <option>Llama 3.1 70B</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tom de voz</label>
+          <select class="form-input select-input">
+            <option>Consultivo</option>
+            <option>Formal</option>
+            <option>Casual e Amigavel</option>
+            <option>Direto e Objetivo</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">
+            Temperatura
+            <span id="temp-value" class="temp-value">0.7</span>
+          </label>
+          <input
+            type="range"
+            id="temp-slider"
+            class="range-input"
+            min="0" max="1" step="0.1" value="0.7"
+            oninput="document.getElementById('temp-value').textContent = this.value"
+          />
+          <div class="range-hints">
+            <span>Preciso</span>
+            <span>Criativo</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status inicial</label>
+          <select class="form-input select-input">
+            <option value="ativo">Ativo</option>
+            <option value="pausado">Pausado</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Mensagem de boas-vindas</label>
+        <textarea class="form-input textarea-input" rows="2" placeholder="Ex: Ola! Sou o assistente virtual do SENAI, como posso te ajudar hoje?"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Instrucoes do agente (prompt do sistema)</label>
+        <textarea class="form-input textarea-input" rows="4" placeholder="Descreva o objetivo do agente, regras de conduta e o que ele deve ou nao fazer durante a conversa..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Base de conhecimento (CSV)</label>
+        <div class="upload-row">
+          <label class="upload-dropzone" for="kb-upload">
+            <span id="upload-label">Clique para selecionar um arquivo .csv</span>
+            <input type="file" id="kb-upload" accept=".csv" onchange="handleFileSelect(this)" hidden />
+          </label>
+          <a class="btn-ghost btn-template" href="{{ url_for('static', filename='downloads/modelo_base_conhecimento.csv') }}" download>
+            Baixar modelo CSV
+          </a>
+        </div>
+        <p class="upload-hint">Use o modelo para importar perguntas, respostas e palavras-chave que o agente vai usar para responder automaticamente.</p>
+      </div>
+
+      <button type="submit" class="btn-primary create-submit">Criar Agente</button>
+    </form>
+
+    <div id="create-success" class="create-success"></div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/agentes.js') }}"></script>
+{% endblock %}
