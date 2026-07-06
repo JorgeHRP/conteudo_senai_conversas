@@ -61,6 +61,23 @@ MOCK_AGENTS = [
 ]
 
 
+def is_follow_up(raw):
+    return str(raw).strip().lower() in ("1", "true", "sim", "yes")
+
+
+def extract_ai_payload(msg):
+    """Extrai o dict de saida da IA de uma mensagem de conversa (agora carrega
+    campos extras como curso de interesse, nome e data, alem da mensagem)."""
+    content = msg.get("content", "")
+    if isinstance(content, str) and content.strip().startswith("{"):
+        try:
+            parsed = json.loads(content)
+            return parsed.get("output", parsed)
+        except Exception:
+            return {}
+    return {}
+
+
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -103,18 +120,16 @@ def dashboard():
     users = supabase.table("conteudo_senai_usuario").select("*").execute().data or []
 
     total = len(users)
-    status_counts = {1: 0, 2: 0, 3: 0}
+    # Classificacao por etapas (Lead Novo/Interesse/Sem Interesse) desativada por ora:
+    # o status agora vem como um id de outro sistema, sem mapeamento definido ainda.
+    # Todo lead entra como "Lead Novo" ate a nova logica de classificacao ser definida.
+    status_counts = {1: total, 2: 0, 3: 0}
     follow_sim = 0
     follow_nao = 0
     date_groups = {}
 
     for u in users:
-        raw = u.get("status")
-        s = int(raw) if raw is not None else None
-        if s in status_counts:
-            status_counts[s] += 1
-
-        if u.get("follow_up"):
+        if is_follow_up(u.get("follow_up")):
             follow_sim += 1
         else:
             follow_nao += 1
@@ -163,15 +178,38 @@ def atendimentos():
         .data or []
     )
 
+    telefones = [u["telefone"] for u in users if u.get("telefone")]
+    curso_por_telefone = {}
+    if telefones:
+        conv_rows = (
+            supabase.table("conteudo_senai_conversas")
+            .select("session_id, message")
+            .in_("session_id", telefones)
+            .order("id")
+            .execute()
+            .data or []
+        )
+        for row in conv_rows:
+            msg = row.get("message", {})
+            if isinstance(msg, str):
+                try:
+                    msg = json.loads(msg)
+                except Exception:
+                    msg = {}
+            curso = extract_ai_payload(msg).get("curso - cad_codcurso")
+            if curso:
+                curso_por_telefone[row["session_id"]] = curso
+
     for u in users:
-        raw = u.get("status")
-        s = int(raw) if raw is not None else None
-        info = STATUS_MAP.get(s, PENDING_STATUS)
+        # Classificacao por etapas desativada por ora (ver dashboard()); todo lead
+        # aparece como "Lead Novo" ate a nova logica de status ser definida.
+        info = STATUS_MAP[1]
         u["status_label"] = info["label"]
         u["status_color"] = info["color"]
         u["status_bg"] = info["bg"]
-        u["status_key"] = str(s) if s is not None else "none"
-        u["follow_up_label"] = "Sim" if u.get("follow_up") else "Nao"
+        u["status_key"] = "1"
+        u["follow_up_label"] = "Sim" if is_follow_up(u.get("follow_up")) else "Nao"
+        u["curso"] = curso_por_telefone.get(u.get("telefone"), "—")
         dt = u.get("created_at", "")
         if dt:
             try:
@@ -216,16 +254,7 @@ def get_conversation(telefone):
             continue
         # AI responses may carry a JSON payload — extract only the human-readable part
         if isinstance(content, str) and content.strip().startswith("{"):
-            try:
-                parsed = json.loads(content)
-                mensagem = (
-                    parsed.get("output", {}).get("mensagem")
-                    or parsed.get("mensagem")
-                    or content
-                )
-                content = mensagem
-            except Exception:
-                pass
+            content = extract_ai_payload(msg).get("mensagem") or content
         messages.append({"type": msg.get("type", "unknown"), "content": content})
     return jsonify(messages)
 

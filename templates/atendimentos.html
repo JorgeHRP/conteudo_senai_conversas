@@ -45,6 +45,7 @@
             <th>Nome</th>
             <th>Telefone</th>
             <th>Status</th>
+            <th>Curso de Interesse</th>
             <th>Follow-up</th>
             <th>Cadastro</th>
             <th></th>
@@ -64,8 +65,9 @@
                 {{ u.status_label }}
               </span>
             </td>
+            <td class="td-name">{{ u.curso }}</td>
             <td>
-              {% if u.follow_up %}
+              {% if u.follow_up_label == 'Sim' %}
                 <span class="badge badge-follow-sim">Sim</span>
               {% else %}
                 <span class="badge badge-follow-nao">Nao</span>
@@ -76,7 +78,7 @@
           </tr>
           {% else %}
           <tr>
-            <td colspan="6">
+            <td colspan="7">
               <div class="empty-state">Nenhum lead encontrado.</div>
             </td>
           </tr>
