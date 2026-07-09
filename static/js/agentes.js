@@ -1,4 +1,4 @@
-/* SENAI CRM — Criador de Agentes (tela mocada) */
+/* CNC CRM — Criador de Agentes (tela mocada) */
 
 function handleFileSelect(input) {
   const label = document.getElementById('upload-label');

@@ -9,7 +9,7 @@ import json
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY", "senai-secret-2024")
+app.secret_key = os.getenv("SECRET_KEY", "cnc-secret-2024")
 
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 
@@ -26,14 +26,14 @@ PENDING_STATUS = {"label": "Pendente", "color": "#8e8e93", "bg": "rgba(142,142,1
 # Dados mocados apenas para demonstracao da tela de criacao de agentes
 MOCK_AGENTS = [
     {
-        "nome": "SDR SENAI - Captacao",
+        "nome": "SDR CNC - Captacao",
         "modelo": "GPT-4o mini",
         "tom": "Consultivo",
         "temperatura": 0.7,
         "status": "ativo",
         "conversas": 482,
         "taxa_resposta": 94,
-        "base_conhecimento": "cursos_senai_2026.csv",
+        "base_conhecimento": "cursos_cnc_2026.csv",
         "criado_em": "18/02/2026",
     },
     {

@@ -1,6 +1,6 @@
-# SENAI CRM — Painel de Atendimentos do Agente IA
+# CNC CRM — Painel de Atendimentos do Agente IA
 
-Dashboard web em Flask para monitorar os leads captados pelo agente IA SDR do SENAI Goiás.
+Dashboard web em Flask para monitorar os leads captados pelo agente IA SDR do CNC.
 O agente opera via WhatsApp (Lara) e registra conversas no Supabase; este painel é a interface de visualização para o operador humano.
 
 ---
@@ -25,7 +25,7 @@ senai_conversas/
 ├── requirements.txt
 ├── templates/
 │   ├── base.html           ← layout base com navegação
-│   ├── login.html          ← tela de login com banner e logo SENAI
+│   ├── login.html          ← tela de login com banner e logo CNC
 │   ├── dashboard.html      ← aba analytics (KPIs + gráficos)
 │   └── atendimentos.html   ← aba de leads com modal de conversa
 └── static/
@@ -33,7 +33,7 @@ senai_conversas/
     ├── js/main.js          ← filtros de tabela + modal de chat
     └── img/
         ├── capa.png        ← banner retangular (usado no login)
-        └── perfil.png      ← logo circular SENAI (usado na nav e login)
+        └── perfil.png      ← logo circular CNC (usado na nav e login)
 ```
 
 ---
