@@ -1,4 +1,4 @@
-/* CNC CRM — main.js */
+/* Senai CRM — main.js */
 
 /* ---- Modal de conversa ---- */
 function openConversation(telefone, nome) {
