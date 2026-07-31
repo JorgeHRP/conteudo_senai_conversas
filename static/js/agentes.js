@@ -1,4 +1,4 @@
-/* Senai CRM — Criador de Agentes (tela mocada) */
+/* Educon FGV — Dashboard — Criador de Agentes (tela mocada) */
 
 function handleFileSelect(input) {
   const label = document.getElementById('upload-label');

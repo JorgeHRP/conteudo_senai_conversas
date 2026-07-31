@@ -1,4 +1,4 @@
-/* Senai CRM — main.js */
+/* Educon FGV — Dashboard — main.js */
 
 /* ---- Modal de conversa ---- */
 function openConversation(telefone, nome) {
