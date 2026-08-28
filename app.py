@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import (
+    Flask, render_template, request, redirect, url_for, session, jsonify, flash
+)
 from supabase import create_client
 from dotenv import load_dotenv
 from functools import wraps
@@ -13,8 +15,16 @@ app.secret_key = os.getenv("SECRET_KEY", "cnc-secret-2024")
 
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 
+# Branding / white-label (config + assets no Supabase) — importado apos load_dotenv
+import branding as branding_mod
+
+
+@app.context_processor
+def inject_branding():
+    return {"branding": branding_mod.get_branding()}
+
 LOGIN_USER = os.getenv("LOGIN_USER", "admin")
-LOGIN_PASSWORD = os.getenv("LOGIN_PASSWORD", "puc2026")
+LOGIN_PASSWORD = os.getenv("LOGIN_PASSWORD", "admin123")
 
 STATUS_MAP = {
     1: {"label": "Lead Novo",      "color": "#0071e3", "bg": "rgba(0,113,227,0.18)"},
@@ -228,6 +238,76 @@ def atendimentos():
 @login_required
 def agentes():
     return render_template("agentes.html", active_tab="agentes", agents=MOCK_AGENTS)
+
+
+@app.route("/admin", methods=["GET", "POST"])
+@login_required
+def admin():
+    if request.method == "POST":
+        f = request.form
+
+        def clean_dict(mapping):
+            return {k: v.strip() for k, v in mapping.items() if v and v.strip()}
+
+        update = {
+            "site_title": (f.get("site_title") or "").strip() or None,
+            "brand_name": (f.get("brand_name") or "").strip() or None,
+            "login_subtitle": (f.get("login_subtitle") or "").strip() or None,
+            "tab_labels": clean_dict({
+                "dashboard": f.get("tab_dashboard", ""),
+                "atendimentos": f.get("tab_atendimentos", ""),
+                "agentes": f.get("tab_agentes", ""),
+            }),
+            "pages": clean_dict({
+                "dashboard.title": f.get("page_dashboard_title", ""),
+                "dashboard.subtitle": f.get("page_dashboard_subtitle", ""),
+                "atendimentos.title": f.get("page_atendimentos_title", ""),
+                "atendimentos.subtitle": f.get("page_atendimentos_subtitle", ""),
+                "agentes.title": f.get("page_agentes_title", ""),
+                "agentes.subtitle": f.get("page_agentes_subtitle", ""),
+            }),
+            "colors": clean_dict({
+                "blue": f.get("color_blue", ""),
+                "green": f.get("color_green", ""),
+                "red": f.get("color_red", ""),
+                "bg": f.get("color_bg", ""),
+            }),
+        }
+
+        raw_overrides = (f.get("overrides") or "").strip()
+        if raw_overrides:
+            try:
+                parsed = json.loads(raw_overrides)
+                if not isinstance(parsed, dict):
+                    raise ValueError("esperado um objeto JSON")
+                update["overrides"] = {str(k): str(v) for k, v in parsed.items()}
+            except Exception as e:
+                flash(f"JSON de overrides inválido ({e}) — nada foi salvo.", "error")
+                return redirect(url_for("admin"))
+        else:
+            update["overrides"] = {}
+
+        try:
+            for field in ("favicon", "logo", "banner"):
+                file = request.files.get(field)
+                if file and file.filename:
+                    update[f"{field}_url"] = branding_mod.upload_asset(
+                        file.read(), field, file.filename
+                    )
+        except ValueError as e:
+            flash(str(e), "error")
+            return redirect(url_for("admin"))
+        except Exception:
+            flash("Falha ao enviar a imagem para o Storage.", "error")
+            return redirect(url_for("admin"))
+
+        branding_mod.save_branding(update)
+        flash("Branding atualizado com sucesso.", "success")
+        return redirect(url_for("admin"))
+
+    return render_template(
+        "admin.html", active_tab="admin", b=branding_mod.get_branding(force=True)
+    )
 
 
 @app.route("/api/conversation/<telefone>")

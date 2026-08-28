@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}Admin{% endblock %}
+
+{% block content %}
+<div class="page">
+
+  <div class="page-header">
+    <h1 class="page-title">Personalização do Site</h1>
+    <p class="page-subtitle">Marca, textos, cores e imagens — aplicado em todas as telas</p>
+  </div>
+
+  <form method="POST" action="{{ url_for('admin') }}" enctype="multipart/form-data">
+
+    <!-- Identidade -->
+    <div class="glass-card create-card">
+      <div class="create-header">
+        <h2 class="create-title">Identidade</h2>
+        <p class="create-subtitle">Deixe um campo vazio para voltar ao texto padrão</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Título da aba do navegador</label>
+        <input type="text" name="site_title" class="form-input"
+               value="{{ b.site_title }}" placeholder="Educon FGV — Dashboard" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nome da marca (nav e login)</label>
+          <input type="text" name="brand_name" class="form-input"
+                 value="{{ b.brand_name }}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subtítulo do login</label>
+          <input type="text" name="login_subtitle" class="form-input"
+                 value="{{ b.login_subtitle }}" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Aba 1 — Dashboard</label>
+          <input type="text" name="tab_dashboard" class="form-input"
+                 value="{{ b.tab_labels['dashboard'] }}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Aba 2 — Atendimentos</label>
+          <input type="text" name="tab_atendimentos" class="form-input"
+                 value="{{ b.tab_labels['atendimentos'] }}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Aba 3 — Criador de Agentes</label>
+          <input type="text" name="tab_agentes" class="form-input"
+                 value="{{ b.tab_labels['agentes'] }}" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Textos das páginas -->
+    <div class="glass-card create-card">
+      <div class="create-header">
+        <h2 class="create-title">Títulos e subtítulos das páginas</h2>
+      </div>
+
+      {% set pages = [
+        ('dashboard', 'Dashboard'),
+        ('atendimentos', 'Atendimentos'),
+        ('agentes', 'Criador de Agentes'),
+      ] %}
+      {% for key, nome in pages %}
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">{{ nome }} — título</label>
+          <input type="text" name="page_{{ key }}_title" class="form-input"
+                 value="{{ b.pages[key ~ '.title'] }}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ nome }} — subtítulo</label>
+          <input type="text" name="page_{{ key }}_subtitle" class="form-input"
+                 value="{{ b.pages[key ~ '.subtitle'] }}" />
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Cores -->
+    <div class="glass-card create-card">
+      <div class="create-header">
+        <h2 class="create-title">Cores do tema</h2>
+        <p class="create-subtitle">Afeta destaque, botões, gráficos e fundo</p>
+      </div>
+      <div class="form-row">
+        {% set cores = [
+          ('blue', 'Destaque'),
+          ('green', 'Sucesso'),
+          ('red', 'Erro'),
+          ('bg', 'Fundo'),
+        ] %}
+        {% for key, nome in cores %}
+        <div class="form-group">
+          <label class="form-label">{{ nome }}</label>
+          <div class="color-field">
+            <input type="color" name="color_{{ key }}"
+                   value="{{ b.colors[key] }}" />
+            <span class="color-hex">{{ b.colors[key] }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Imagens -->
+    <div class="glass-card create-card">
+      <div class="create-header">
+        <h2 class="create-title">Imagens</h2>
+        <p class="create-subtitle">
+          Arquivos grandes são redimensionados e comprimidos automaticamente antes
+          de salvar (máx. 8 MB no envio)
+        </p>
+      </div>
+
+      {% set imgs = [
+        ('favicon', 'Favicon', 'PNG ou SVG · vira 180×180', b.favicon_url),
+        ('logo', 'Logo', 'PNG/JPG/WEBP/SVG · máx. 512px, vira WEBP', b.logo_url),
+        ('banner', 'Banner do login', 'PNG/JPG/WEBP · máx. 1600px, vira WEBP', b.banner_url),
+      ] %}
+      {% for field, nome, hint, current in imgs %}
+      <div class="form-group">
+        <label class="form-label">{{ nome }}</label>
+        <div class="upload-row">
+          {% if current %}
+          <img src="{{ current }}" alt="{{ nome }} atual" class="asset-preview" />
+          {% else %}
+          <span class="asset-preview asset-preview-empty">sem imagem</span>
+          {% endif %}
+          <input type="file" name="{{ field }}" class="form-input"
+                 accept="image/png,image/jpeg,image/webp,image/svg+xml" />
+        </div>
+        <p class="upload-hint">{{ hint }}</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Avançado -->
+    <div class="glass-card create-card">
+      <div class="create-header">
+        <h2 class="create-title">Overrides avançados (JSON)</h2>
+        <p class="create-subtitle">
+          Objeto JSON <code>{ "chave": "texto" }</code>. Sobrescreve qualquer chave de
+          página (ex.: <code>"dashboard.subtitle"</code>). Deixe <code>{}</code> para nenhum.
+        </p>
+      </div>
+      <div class="form-group">
+        <textarea name="overrides" class="form-input textarea-input" rows="6"
+                  spellcheck="false">{{ b.overrides | tojson(indent=2) }}</textarea>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-primary create-submit">Salvar alterações</button>
+  </form>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* espelha o valor do color picker no texto ao lado */
+document.querySelectorAll('.color-field input[type=color]').forEach(function (inp) {
+  inp.addEventListener('input', function () {
+    inp.parentElement.querySelector('.color-hex').textContent = inp.value;
+  });
+});
+</script>
+{% endblock %}

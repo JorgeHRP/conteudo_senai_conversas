@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Educon FGV — Dashboard — Login</title>
-  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}" />
+  <title>{{ branding.site_title }} — Login</title>
+  <link rel="icon" href="{{ branding.favicon_url or url_for('static', filename='img/favicon.svg') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <style>{{ branding.css_vars | safe }}</style>
 </head>
 <body>
 <div class="login-page">
@@ -14,8 +15,8 @@
     <!-- Banner -->
     <div class="login-banner">
       <img
-        src="{{ url_for('static', filename='img/capa.webp') }}"
-        alt="CNC Cursos Profissionalizantes"
+        src="{{ branding.banner_url or url_for('static', filename='img/capa.webp') }}"
+        alt="{{ branding.brand_name }}"
         class="login-banner-img"
       />
     </div>
@@ -23,12 +24,12 @@
     <!-- Logo + titulo -->
     <div class="login-logo">
       <img
-        src="{{ url_for('static', filename='img/perfil.png') }}"
-        alt="CNC"
+        src="{{ branding.logo_url or url_for('static', filename='img/perfil.png') }}"
+        alt="{{ branding.brand_name }}"
         class="login-perfil-img"
       />
-      <div class="login-title">Educon FGV — Dashboard</div>
-      <div class="login-subtitle">Painel de Atendimentos — Agente IA</div>
+      <div class="login-title">{{ branding.brand_name }}</div>
+      <div class="login-subtitle">{{ branding.login_subtitle }}</div>
     </div>
 
     {% if error %}

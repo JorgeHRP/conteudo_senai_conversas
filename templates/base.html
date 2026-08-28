@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Educon FGV — Dashboard — {% block title %}{% endblock %}</title>
-  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}" />
+  <title>{{ branding.site_title }} — {% block title %}{% endblock %}</title>
+  <link rel="icon" href="{{ branding.favicon_url or url_for('static', filename='img/favicon.svg') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <style>{{ branding.css_vars | safe }}</style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -15,25 +16,25 @@
   <nav class="nav">
     <a href="{{ url_for('dashboard') }}" class="nav-brand">
       <img
-        src="{{ url_for('static', filename='img/perfil.png') }}"
-        alt="CNC"
+        src="{{ branding.logo_url or url_for('static', filename='img/perfil.png') }}"
+        alt="{{ branding.brand_name }}"
         class="nav-logo-img"
       />
-      Educon FGV — Dashboard
+      {{ branding.brand_name }}
     </a>
 
     <div class="nav-tabs">
       <a href="{{ url_for('dashboard') }}"
          class="nav-tab {% if active_tab == 'dashboard' %}active{% endif %}">
-        Dashboard
+        {{ branding.tab_labels['dashboard'] }}
       </a>
       <a href="{{ url_for('atendimentos') }}"
          class="nav-tab {% if active_tab == 'atendimentos' %}active{% endif %}">
-        Atendimentos
+        {{ branding.tab_labels['atendimentos'] }}
       </a>
       <a href="{{ url_for('agentes') }}"
          class="nav-tab {% if active_tab == 'agentes' %}active{% endif %}">
-        Criador de Agentes
+        {{ branding.tab_labels['agentes'] }}
       </a>
     </div>
 
@@ -42,6 +43,15 @@
 
   <!-- Content -->
   <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-stack">
+          {% for category, msg in messages %}
+            <div class="flash flash-{{ category }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
     {% block content %}{% endblock %}
   </main>
 

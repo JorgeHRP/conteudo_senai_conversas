@@ -22,12 +22,15 @@ O agente opera via WhatsApp (Lara) e registra conversas no Supabase; este painel
 senai_conversas/
 ├── .env                    ← credenciais (não sobe no git)
 ├── app.py                  ← Flask — rotas, lógica, integração Supabase
-├── requirements.txt
+├── branding.py             ← config de marca: cache + pipeline de imagem (Pillow) + Storage
+├── requirements.txt        ← UTF-8 (era UTF-16); inclui pillow
 ├── templates/
-│   ├── base.html           ← layout base com navegação
-│   ├── login.html          ← tela de login com banner e logo CNC
+│   ├── base.html           ← layout base com navegação + injeção de cores
+│   ├── login.html          ← tela de login com banner e logo
 │   ├── dashboard.html      ← aba analytics (KPIs + gráficos)
-│   └── atendimentos.html   ← aba de leads com modal de conversa
+│   ├── atendimentos.html   ← aba de leads com modal de conversa
+│   ├── agentes.html        ← Criador de Agentes (mock)
+│   └── admin.html          ← personalização do site (branding)
 └── static/
     ├── css/style.css       ← design system glass Apple completo
     ├── js/main.js          ← filtros de tabela + modal de chat
@@ -106,7 +109,57 @@ python app.py
 | `GET /logout` | Encerra sessão |
 | `GET /dashboard` | Aba analytics — KPIs + gráficos Chart.js |
 | `GET /atendimentos` | Tabela de leads com busca e filtros |
+| `GET /agentes` | Criador de Agentes (tela de demonstração, dados mocados) |
+| `GET/POST /admin` | Personalização do site (branding) — **rota escondida, sem link no menu** |
 | `GET /api/conversation/<telefone>` | JSON com mensagens da conversa (usado pelo modal) |
+
+---
+
+## Personalização do site (`/admin`)
+
+Tela para adaptar o painel a cada cliente sem tocar no código — pensada para usar o
+sistema como mostruário.
+
+### O que dá pra editar
+- Título da aba do navegador, nome da marca, subtítulo do login
+- Rótulos das 3 abas de navegação
+- Título e subtítulo de cada página (Dashboard, Atendimentos, Criador de Agentes)
+- Cores do tema: destaque, sucesso, erro e fundo (injetadas sobre as variáveis CSS)
+- Favicon, logo e banner do login
+- **Overrides avançados (JSON):** `{ "chave": "texto" }` sobrescreve qualquer chave de
+  página, ex.: `{"dashboard.subtitle": "..."}`
+
+### Como funciona
+- Config de texto/cor → tabela `branding` no Supabase (1 linha, `id = 1`)
+- Imagens → bucket público `branding` no Supabase Storage
+- Uploads passam por **Pillow** antes de subir: valida que é imagem, rejeita > 8 MB,
+  redimensiona (logo 512px / banner 1600px / favicon 180px quadrado) e converte
+  logo/banner para WebP. SVG sobe direto (limite 512 KB).
+- `app.py` carrega a config via `context_processor` com cache em memória de 30 s
+  (o Procfile roda `gunicorn -w 3`; após salvar, os outros workers atualizam em ≤ 30 s)
+- Campo vazio no formulário = volta ao texto padrão do template
+- URLs das imagens levam `?v=<timestamp>` para furar cache do navegador
+
+### Tabela `branding`
+| Coluna | Tipo | Conteúdo |
+|--------|------|----------|
+| `id` | int | sempre `1` |
+| `site_title`, `brand_name`, `login_subtitle` | text | textos base |
+| `tab_labels` | jsonb | `{"dashboard": "...", "atendimentos": "...", "agentes": "..."}` |
+| `pages` | jsonb | `{"dashboard.title": "...", "dashboard.subtitle": "...", ...}` |
+| `colors` | jsonb | `{"blue": "#...", "green": "#...", "red": "#...", "bg": "#..."}` |
+| `favicon_url`, `logo_url`, `banner_url` | text | URL pública no Storage |
+| `overrides` | jsonb | overrides livres de chaves de `pages` |
+| `updated_at` | timestamptz | |
+
+> **Limitação de cores:** só `--blue` / `--green` / `--red` / fundo são sobrescritos.
+> Os literais `rgba(...)` espalhados no `style.css` não acompanham a troca.
+
+### Auth / acesso
+`/admin` é uma **rota escondida**: não aparece no menu de navegação, só é acessada
+digitando a URL direto. Continua atrás do mesmo login do painel (`login_required`) —
+não há senha dedicada nem papel separado. Se quiser, dá pra adicionar um
+`ADMIN_PASSWORD` no `.env` depois.
 
 ---
 
